@@ -1018,7 +1018,7 @@ function truncateText(text, maxLen) {
 function escapeHtml(text) {
   const d = document.createElement('div');
   d.textContent = text;
-  return d.innerHTML;
+  return d.innerHTML.replace(/\\n/g, '<br>').replace(/\n/g, '<br>');
 }
 
 // ── SCREENS ──
