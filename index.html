@@ -1289,7 +1289,7 @@ function drawShareCard(iq, verdict, correct, total, avgTime, vc) {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   const W = 810, H = 1080;
-  const pad = 56;
+  const mx = 48; // margin x
 
   const serif = 'Georgia, "Palatino Linotype", Palatino, serif';
   const sans = '-apple-system, system-ui, Roboto, sans-serif';
@@ -1302,170 +1302,148 @@ function drawShareCard(iq, verdict, correct, total, avgTime, vc) {
   const pctVal = Math.round((correct / total) * 100);
 
   // ── Background
-  ctx.fillStyle = '#fafafa';
+  ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, W, H);
 
-  // ── Inner white card with subtle shadow feel
-  const cardX = 32, cardY = 32, cardW = W - 64, cardH = H - 64;
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(cardX, cardY, cardW, cardH);
-  ctx.strokeStyle = '#e0e0e0';
-  ctx.lineWidth = 1;
-  ctx.strokeRect(cardX, cardY, cardW, cardH);
-
-  // ── Top accent line inside card
+  // ── Top accent bar
   ctx.fillStyle = '#006699';
-  ctx.fillRect(cardX, cardY, cardW, 5);
+  ctx.fillRect(0, 0, W, 5);
 
-  // ── Header area
-  let y = cardY + 48;
+  // ── HEADER
+  let y = 44;
   ctx.textAlign = 'left';
   ctx.font = `bold 11px ${sans}`;
   ctx.fillStyle = '#006699';
-  ctx.fillText('ORIGINAL RESEARCH', pad, y);
+  ctx.fillText('ORIGINAL RESEARCH', mx, y);
 
-  // Title
-  y += 32;
-  ctx.font = `bold 28px ${serif}`;
-  ctx.fillStyle = '#111111';
-  ctx.fillText('The Reverse Turing Test', pad, y);
+  y += 36;
+  ctx.font = `bold 30px ${serif}`;
+  ctx.fillStyle = '#111';
+  ctx.fillText('The Reverse Turing Test', mx, y);
 
-  // Subtitle
-  y += 28;
-  ctx.font = `italic 16px ${serif}`;
-  ctx.fillStyle = '#555555';
-  const subText = handle ? `Results for ${handle}` : 'Individual Results';
-  ctx.fillText(subText, pad, y);
+  y += 26;
+  ctx.font = `italic 15px ${serif}`;
+  ctx.fillStyle = '#666';
+  ctx.fillText(handle ? `Results for ${handle}` : 'Individual Results', mx, y);
 
-  // Meta line
-  y += 24;
+  y += 22;
   ctx.font = `12px ${sans}`;
-  ctx.fillStyle = '#aaaaaa';
-  ctx.fillText(`${new Date().toLocaleDateString('en-US', {month:'long',day:'numeric',year:'numeric'})}  \u00B7  HC3 Corpus  \u00B7  ${total} trials`, pad, y);
+  ctx.fillStyle = '#aaa';
+  ctx.fillText(`${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}  \u00B7  HC3 Corpus  \u00B7  ${total} trials`, mx, y);
 
-  // Heavy rule
-  y += 18;
-  ctx.fillStyle = '#111111';
-  ctx.fillRect(pad, y, cardW - (pad - cardX) * 2, 3);
+  // ── Heavy rule
+  y += 16;
+  ctx.fillStyle = '#111';
+  ctx.fillRect(mx, y, W - mx * 2, 3);
 
-  // ═══ SCORE BLOCK — centered
-  y += 56;
+  // ── IQ SCORE
+  y += 72;
   ctx.textAlign = 'center';
-
-  // IQ — massive
-  ctx.font = `bold 96px ${serif}`;
-  ctx.fillStyle = '#111111';
+  ctx.font = `bold 110px ${serif}`;
+  ctx.fillStyle = '#111';
   ctx.fillText(iq.toString(), W / 2, y);
 
-  // Underline accent
-  const iqWidth = ctx.measureText(iq.toString()).width;
+  // Colored underline
+  const iqW = ctx.measureText(iq.toString()).width;
   ctx.fillStyle = vcc;
-  ctx.fillRect(W / 2 - iqWidth / 2, y + 6, iqWidth, 3);
+  ctx.fillRect(W / 2 - iqW / 2, y + 8, iqW, 4);
 
-  y += 28;
-  ctx.font = `11px ${sans}`;
-  ctx.fillStyle = '#aaaaaa';
+  y += 30;
+  ctx.font = `bold 11px ${sans}`;
+  ctx.fillStyle = '#aaa';
   ctx.fillText('REVERSE TURING SCORE', W / 2, y);
 
-  // Verdict
-  y += 40;
-  ctx.font = `bold 24px ${serif}`;
+  // ── Verdict
+  y += 42;
+  ctx.font = `bold 26px ${serif}`;
   ctx.fillStyle = vcc;
   ctx.fillText(verdict, W / 2, y);
 
-  // ═══ STATS — three boxes
+  // ── Thin divider
+  y += 24;
+  ctx.beginPath();
+  ctx.moveTo(mx + 80, y);
+  ctx.lineTo(W - mx - 80, y);
+  ctx.strokeStyle = '#e0e0e0';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // ── STATS — inline, no boxes
+  y += 44;
+  const cols3 = [W * 0.2, W * 0.5, W * 0.8];
+  ctx.font = `bold 32px ${mono}`;
+  ctx.fillStyle = '#222';
+  ctx.fillText(`${correct}/${total}`, cols3[0], y);
+  ctx.fillText(`${avgTime}s`, cols3[1], y);
+  ctx.fillText(`${pctVal}%`, cols3[2], y);
+
+  y += 20;
+  ctx.font = `bold 10px ${sans}`;
+  ctx.fillStyle = '#bbb';
+  ctx.fillText('CORRECT', cols3[0], y);
+  ctx.fillText('AVG TIME', cols3[1], y);
+  ctx.fillText('ACCURACY', cols3[2], y);
+
+  // ── BELL CURVE
   y += 48;
-  const boxW = 190, boxH = 72, boxGap = 20;
-  const totalBoxW = boxW * 3 + boxGap * 2;
-  const boxStart = (W - totalBoxW) / 2;
-
-  const stats = [
-    { val: `${correct}/${total}`, label: 'CORRECT' },
-    { val: `${avgTime}s`, label: 'AVG TIME' },
-    { val: `${pctVal}%`, label: 'ACCURACY' }
-  ];
-
-  stats.forEach((s, i) => {
-    const bx = boxStart + i * (boxW + boxGap);
-    // Box
-    ctx.fillStyle = '#f7f7f7';
-    ctx.fillRect(bx, y, boxW, boxH);
-    ctx.strokeStyle = '#e8e8e8';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(bx, y, boxW, boxH);
-
-    // Value
-    ctx.textAlign = 'center';
-    ctx.font = `bold 26px ${mono}`;
-    ctx.fillStyle = '#222222';
-    ctx.fillText(s.val, bx + boxW / 2, y + 32);
-
-    // Label
-    ctx.font = `10px ${sans}`;
-    ctx.fillStyle = '#aaaaaa';
-    ctx.fillText(s.label, bx + boxW / 2, y + 54);
-  });
-
-  // ═══ BELL CURVE — figure style
-  y += boxH + 40;
-  const curveH = 180;
-  const cl = pad + 8, cr = W - pad - 8;
-  const cw = cr - cl;
+  const curveH = 240;
+  const cl = mx + 4, cr = W - mx - 4, cw = cr - cl;
   const mean = 100, sd = 15, iqMin = 55, iqMax = 155;
   function gauss(x) { return Math.exp(-0.5 * Math.pow((x - mean) / sd, 2)); }
 
-  // Figure caption
+  // Caption
   ctx.textAlign = 'left';
   ctx.font = `bold 10px ${sans}`;
-  ctx.fillStyle = '#aaaaaa';
+  ctx.fillStyle = '#bbb';
   ctx.fillText('FIG. 1  \u2014  Normal distribution with subject position', cl, y);
-  y += 16;
+  y += 20;
 
-  // Shaded regions: below avg, avg, above avg
-  // Below average fill
+  // Shaded regions
+  const lx85 = cl + ((85 - iqMin) / (iqMax - iqMin)) * cw;
+  const lx115 = cl + ((115 - iqMin) / (iqMax - iqMin)) * cw;
+
+  // Below avg
   ctx.beginPath();
   ctx.moveTo(cl, y + curveH);
-  const avgLeftX = cl + ((85 - iqMin) / (iqMax - iqMin)) * cw;
-  const avgRightX = cl + ((115 - iqMin) / (iqMax - iqMin)) * cw;
   for (let i = 0; i <= cw; i++) {
-    const iqVal = iqMin + (i / cw) * (iqMax - iqMin);
-    if (iqVal <= 85) ctx.lineTo(cl + i, y + curveH - gauss(iqVal) * curveH);
+    const v = iqMin + (i / cw) * (iqMax - iqMin);
+    if (v <= 85) ctx.lineTo(cl + i, y + curveH - gauss(v) * curveH);
   }
-  ctx.lineTo(avgLeftX, y + curveH);
+  ctx.lineTo(lx85, y + curveH);
   ctx.closePath();
-  ctx.fillStyle = 'rgba(183,70,22,0.04)';
+  ctx.fillStyle = 'rgba(183,70,22,0.05)';
   ctx.fill();
 
-  // Average fill
+  // Average
   ctx.beginPath();
-  ctx.moveTo(avgLeftX, y + curveH);
+  ctx.moveTo(lx85, y + curveH);
   for (let i = 0; i <= cw; i++) {
-    const iqVal = iqMin + (i / cw) * (iqMax - iqMin);
-    if (iqVal >= 85 && iqVal <= 115) ctx.lineTo(cl + i, y + curveH - gauss(iqVal) * curveH);
+    const v = iqMin + (i / cw) * (iqMax - iqMin);
+    if (v >= 85 && v <= 115) ctx.lineTo(cl + i, y + curveH - gauss(v) * curveH);
   }
-  ctx.lineTo(avgRightX, y + curveH);
+  ctx.lineTo(lx115, y + curveH);
   ctx.closePath();
-  ctx.fillStyle = 'rgba(0,102,153,0.05)';
+  ctx.fillStyle = 'rgba(0,102,153,0.06)';
   ctx.fill();
 
-  // Above average fill
+  // Above avg
   ctx.beginPath();
-  ctx.moveTo(avgRightX, y + curveH);
+  ctx.moveTo(lx115, y + curveH);
   for (let i = 0; i <= cw; i++) {
-    const iqVal = iqMin + (i / cw) * (iqMax - iqMin);
-    if (iqVal >= 115) ctx.lineTo(cl + i, y + curveH - gauss(iqVal) * curveH);
+    const v = iqMin + (i / cw) * (iqMax - iqMin);
+    if (v >= 115) ctx.lineTo(cl + i, y + curveH - gauss(v) * curveH);
   }
   ctx.lineTo(cr, y + curveH);
   ctx.closePath();
-  ctx.fillStyle = 'rgba(26,122,46,0.04)';
+  ctx.fillStyle = 'rgba(26,122,46,0.05)';
   ctx.fill();
 
   // Curve stroke
   ctx.beginPath();
   for (let i = 0; i <= cw; i++) {
-    const iqVal = iqMin + (i / cw) * (iqMax - iqMin);
-    const cy = y + curveH - gauss(iqVal) * curveH;
-    i === 0 ? ctx.moveTo(cl + i, cy) : ctx.lineTo(cl + i, cy);
+    const v = iqMin + (i / cw) * (iqMax - iqMin);
+    const py = y + curveH - gauss(v) * curveH;
+    i === 0 ? ctx.moveTo(cl + i, py) : ctx.lineTo(cl + i, py);
   }
   ctx.strokeStyle = '#c0c0c0';
   ctx.lineWidth = 2;
@@ -1475,19 +1453,17 @@ function drawShareCard(iq, verdict, correct, total, avgTime, vc) {
   ctx.beginPath();
   ctx.moveTo(cl, y + curveH);
   ctx.lineTo(cr, y + curveH);
-  ctx.strokeStyle = '#d5d5d5';
+  ctx.strokeStyle = '#ddd';
   ctx.lineWidth = 1;
   ctx.stroke();
 
   // Ticks + labels
   ctx.textAlign = 'center';
   ctx.font = `10px ${sans}`;
-  ctx.fillStyle = '#bbbbbb';
+  ctx.fillStyle = '#bbb';
   for (let v = 70; v <= 150; v += 10) {
     const x = cl + ((v - iqMin) / (iqMax - iqMin)) * cw;
-    if (v % 20 === 0 || v === 70) {
-      ctx.fillText(v.toString(), x, y + curveH + 16);
-    }
+    if (v % 20 === 0 || v === 70) ctx.fillText(v.toString(), x, y + curveH + 16);
     ctx.beginPath();
     ctx.moveTo(x, y + curveH);
     ctx.lineTo(x, y + curveH + (v % 20 === 0 || v === 70 ? 5 : 3));
@@ -1497,17 +1473,16 @@ function drawShareCard(iq, verdict, correct, total, avgTime, vc) {
 
   // Region labels
   ctx.font = `9px ${sans}`;
-  ctx.fillStyle = '#cccccc';
-  ctx.fillText('BELOW AVG', cl + ((70 - iqMin) / (iqMax - iqMin)) * cw, y + curveH + 30);
+  ctx.fillStyle = '#ccc';
+  ctx.fillText('BELOW AVG', cl + ((72 - iqMin) / (iqMax - iqMin)) * cw, y + curveH + 30);
   ctx.fillText('AVERAGE', cl + ((100 - iqMin) / (iqMax - iqMin)) * cw, y + curveH + 30);
-  ctx.fillText('ABOVE AVG', cl + ((130 - iqMin) / (iqMax - iqMin)) * cw, y + curveH + 30);
+  ctx.fillText('ABOVE AVG', cl + ((128 - iqMin) / (iqMax - iqMin)) * cw, y + curveH + 30);
 
   // ── User marker
   const ciq = Math.min(Math.max(iq, iqMin + 3), iqMax - 3);
   const ux = cl + ((ciq - iqMin) / (iqMax - iqMin)) * cw;
   const uy = y + curveH - gauss(ciq) * curveH;
 
-  // Dashed line
   ctx.beginPath();
   ctx.moveTo(ux, uy + 2);
   ctx.lineTo(ux, y + curveH);
@@ -1517,49 +1492,45 @@ function drawShareCard(iq, verdict, correct, total, avgTime, vc) {
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // Dot — larger, with ring
+  // Dot with ring
   ctx.beginPath();
-  ctx.arc(ux, uy, 8, 0, Math.PI * 2);
+  ctx.arc(ux, uy, 7, 0, Math.PI * 2);
   ctx.fillStyle = vcc;
   ctx.fill();
-  ctx.beginPath();
-  ctx.arc(ux, uy, 8, 0, Math.PI * 2);
-  ctx.strokeStyle = '#ffffff';
+  ctx.strokeStyle = '#fff';
   ctx.lineWidth = 3;
   ctx.stroke();
   ctx.beginPath();
-  ctx.arc(ux, uy, 11, 0, Math.PI * 2);
+  ctx.arc(ux, uy, 10, 0, Math.PI * 2);
   ctx.strokeStyle = vcc;
   ctx.lineWidth = 1.5;
   ctx.globalAlpha = 0.3;
   ctx.stroke();
   ctx.globalAlpha = 1;
 
-  // Label above
+  // Label
   ctx.font = `bold 13px ${sans}`;
   ctx.fillStyle = vcc;
-  ctx.textAlign = 'center';
-  const youText = handle || 'YOU';
-  ctx.fillText(youText, ux, uy - 20);
+  ctx.fillText(handle || 'YOU', ux, uy - 18);
 
-  // ═══ FOOTER inside card
-  const footY = cardY + cardH - 40;
+  // ── FOOTER — pinned to bottom
+  const footY = H - 44;
   ctx.beginPath();
-  ctx.moveTo(pad, footY);
-  ctx.lineTo(W - pad, footY);
+  ctx.moveTo(mx, footY);
+  ctx.lineTo(W - mx, footY);
   ctx.strokeStyle = '#e8e8e8';
   ctx.lineWidth = 1;
   ctx.stroke();
 
-  ctx.font = `12px ${sans}`;
-  ctx.fillStyle = '#bbbbbb';
   ctx.textAlign = 'left';
-  ctx.fillText('Take the test  \u2192  reverseturing.com', pad, footY + 22);
+  ctx.font = `12px ${sans}`;
+  ctx.fillStyle = '#bbb';
+  ctx.fillText('chiefautism.github.io/reverse-turing-test', mx, footY + 24);
 
   ctx.textAlign = 'right';
   ctx.font = `bold 12px ${sans}`;
   ctx.fillStyle = '#006699';
-  ctx.fillText('@chiefofautism', W - pad, footY + 22);
+  ctx.fillText('@chiefofautism', W - mx, footY + 24);
 }
 
 // ── SHARE BUTTONS ──
