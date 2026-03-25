@@ -862,7 +862,7 @@ body {
     <div class="share-section">
       <div class="share-section-title">Share Your Results</div>
       <div class="share-canvas-wrap">
-        <canvas id="share-canvas" width="810" height="1080"></canvas>
+        <canvas id="share-canvas" width="810" height="880"></canvas>
       </div>
       <div class="share-handle-row">
         <label>Your X handle:</label>
@@ -1296,7 +1296,7 @@ function drawShareCard(iq, verdict, correct, total, avgTime, vc) {
   const canvas = $('#share-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  const W = 810, H = 1080;
+  const W = 810, H = 880;
 
   // ── Nature design tokens
   const serif = 'Georgia, Palatino, "Book Antiqua", serif';
