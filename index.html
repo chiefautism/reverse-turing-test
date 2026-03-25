@@ -1271,6 +1271,14 @@ function showResults() {
 
   // Auto-save to localStorage
   saveResult(iq, correctCount, total, avgTime, verdict, selectedDataset);
+
+  // GoatCounter events
+  if (window.goatcounter && window.goatcounter.count) {
+    window.goatcounter.count({ path: `/result/${iq}/${vc}`, event: true });
+    window.goatcounter.count({ path: `/score/${correctCount}-of-${total}`, event: true });
+    window.goatcounter.count({ path: `/domain/${selectedDataset}`, event: true });
+    window.goatcounter.count({ path: `/rounds/${total}`, event: true });
+  }
 }
 
 // ═══════════════════════════════════════════════════
