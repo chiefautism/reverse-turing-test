@@ -1272,12 +1272,11 @@ function showResults() {
   // Auto-save to localStorage
   saveResult(iq, correctCount, total, avgTime, verdict, selectedDataset);
 
-  // GoatCounter events
+  // GoatCounter events (path must NOT start with / for events)
   if (window.goatcounter && window.goatcounter.count) {
-    window.goatcounter.count({ path: `/result/${iq}/${vc}`, event: true });
-    window.goatcounter.count({ path: `/score/${correctCount}-of-${total}`, event: true });
-    window.goatcounter.count({ path: `/domain/${selectedDataset}`, event: true });
-    window.goatcounter.count({ path: `/rounds/${total}`, event: true });
+    window.goatcounter.count({ path: `result-${iq}-${vc}`, title: `Score ${iq} (${verdict})`, event: true });
+    window.goatcounter.count({ path: `accuracy-${pct > 0.9 ? '90plus' : pct > 0.7 ? '70-90' : pct > 0.5 ? '50-70' : 'below50'}`, title: `${correctCount}/${total} correct`, event: true });
+    window.goatcounter.count({ path: `domain-${selectedDataset}`, title: selectedDataset, event: true });
   }
 }
 
