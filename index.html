@@ -1288,248 +1288,268 @@ function drawShareCard(iq, verdict, correct, total, avgTime, vc) {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   const W = 810, H = 1080;
-  const mx = 48; // margin x
 
-  const serif = 'Georgia, "Palatino Linotype", Palatino, serif';
-  const sans = '-apple-system, system-ui, Roboto, sans-serif';
-  const mono = 'Menlo, "SF Mono", Consolas, monospace';
-  const verdictColors = {
-    genius: '#1a7a2e', sharp: '#006699', average: '#996b00', 'bot-brained': '#b74616'
-  };
-  const vcc = verdictColors[vc] || '#222';
+  // ── Nature design tokens
+  const serif = 'Georgia, Palatino, "Book Antiqua", serif';
+  const sans = '-apple-system, system-ui, "Segoe UI", Roboto, sans-serif';
+  const mono = 'Menlo, Consolas, "Courier New", monospace';
+  const black = '#000000';
+  const text1 = '#222222';
+  const text2 = '#333333';
+  const textMuted = '#999999';
+  const textLight = '#bbbbbb';
+  const accent = '#006699';
+  const rust = '#b74616';
+  const border = '#d5d5d5';
+  const bgMid = '#f5f5f5';
+  const white = '#ffffff';
+  const verdictColors = { genius: '#1a7a2e', sharp: accent, average: '#996b00', 'bot-brained': rust };
+  const vcc = verdictColors[vc] || text1;
   const handle = $('#share-handle').value.trim();
   const pctVal = Math.round((correct / total) * 100);
+  const mx = 56;
 
-  // ── Background
-  ctx.fillStyle = '#ffffff';
+  // ═══ BACKGROUND — white
+  ctx.fillStyle = white;
   ctx.fillRect(0, 0, W, H);
 
-  // ── Top accent bar
-  ctx.fillStyle = '#006699';
-  ctx.fillRect(0, 0, W, 5);
-
-  // ── HEADER
-  let y = 44;
+  // ═══ TOP BLACK HEADER BAR — Nature style
+  ctx.fillStyle = black;
+  ctx.fillRect(0, 0, W, 52);
+  ctx.font = `bold 18px ${serif}`;
+  ctx.fillStyle = white;
   ctx.textAlign = 'left';
-  ctx.font = `bold 11px ${sans}`;
-  ctx.fillStyle = '#006699';
-  ctx.fillText('ORIGINAL RESEARCH', mx, y);
+  ctx.fillText('The Reverse Turing Test', 24, 33);
+  ctx.textAlign = 'right';
+  ctx.font = `13px ${sans}`;
+  ctx.fillStyle = '#888888';
+  ctx.fillText('chiefautism.github.io/reverse-turing-test', W - 24, 33);
 
-  y += 36;
-  ctx.font = `bold 30px ${serif}`;
-  ctx.fillStyle = '#111';
-  ctx.fillText('The Reverse Turing Test', mx, y);
+  // ═══ ARTICLE TYPE
+  let y = 88;
+  ctx.textAlign = 'left';
+  ctx.font = `bold 13px ${sans}`;
+  ctx.fillStyle = accent;
+  ctx.fillText('ASSESSMENT RESULTS', mx, y);
 
-  y += 26;
-  ctx.font = `italic 15px ${serif}`;
-  ctx.fillStyle = '#666';
-  ctx.fillText(handle ? `Results for ${handle}` : 'Individual Results', mx, y);
+  // ═══ TITLE — large serif, Nature h1 style
+  y += 38;
+  ctx.font = `bold 32px ${serif}`;
+  ctx.fillStyle = text1;
+  ctx.letterSpacing = '-0.625px';
+  ctx.fillText('Slop Detection Score', mx, y);
 
-  y += 22;
-  ctx.font = `12px ${sans}`;
-  ctx.fillStyle = '#aaa';
-  ctx.fillText(`${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}  \u00B7  HC3 Corpus  \u00B7  ${total} trials`, mx, y);
+  // ═══ AUTHOR + META — Nature article meta
+  y += 30;
+  ctx.font = `14px ${sans}`;
+  ctx.fillStyle = textMuted;
+  const authorStr = handle ? `${handle}  \u00B7  ` : '';
+  ctx.fillText(`${authorStr}Dr. Chief of Autism`, mx, y);
+  ctx.textAlign = 'right';
+  ctx.fillText(new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }), W - mx, y);
+  ctx.textAlign = 'left';
 
-  // ── Heavy rule
-  y += 16;
-  ctx.fillStyle = '#111';
-  ctx.fillRect(mx, y, W - mx * 2, 3);
+  // ═══ 5px BLACK RULE — Nature article divider
+  y += 20;
+  ctx.fillStyle = black;
+  ctx.fillRect(mx, y, W - mx * 2, 5);
 
-  // ── IQ SCORE
-  y += 72;
+  // ═══ SCORE — big centered number
+  y += 100;
   ctx.textAlign = 'center';
-  ctx.font = `bold 110px ${serif}`;
-  ctx.fillStyle = '#111';
+  ctx.font = `bold 128px ${serif}`;
+  ctx.fillStyle = text1;
   ctx.fillText(iq.toString(), W / 2, y);
 
-  // Colored underline
-  const iqW = ctx.measureText(iq.toString()).width;
-  ctx.fillStyle = vcc;
-  ctx.fillRect(W / 2 - iqW / 2, y + 8, iqW, 4);
+  // Score label
+  y += 20;
+  ctx.font = `13px ${sans}`;
+  ctx.fillStyle = textMuted;
+  ctx.fillText('Reverse Turing Score', W / 2, y);
 
-  y += 30;
-  ctx.font = `bold 11px ${sans}`;
-  ctx.fillStyle = '#aaa';
-  ctx.fillText('REVERSE TURING SCORE', W / 2, y);
-
-  // ── Verdict
-  y += 42;
-  ctx.font = `bold 26px ${serif}`;
+  // ═══ VERDICT — colored, serif
+  y += 48;
+  ctx.font = `bold 28px ${serif}`;
   ctx.fillStyle = vcc;
   ctx.fillText(verdict, W / 2, y);
 
-  // ── Thin divider
-  y += 24;
+  // ═══ 1px BORDER — Nature style
+  y += 32;
   ctx.beginPath();
-  ctx.moveTo(mx + 80, y);
-  ctx.lineTo(W - mx - 80, y);
-  ctx.strokeStyle = '#e0e0e0';
+  ctx.moveTo(mx, y);
+  ctx.lineTo(W - mx, y);
+  ctx.strokeStyle = border;
   ctx.lineWidth = 1;
   ctx.stroke();
 
-  // ── STATS — inline, no boxes
-  y += 44;
-  const cols3 = [W * 0.2, W * 0.5, W * 0.8];
-  ctx.font = `bold 32px ${mono}`;
-  ctx.fillStyle = '#222';
-  ctx.fillText(`${correct}/${total}`, cols3[0], y);
-  ctx.fillText(`${avgTime}s`, cols3[1], y);
-  ctx.fillText(`${pctVal}%`, cols3[2], y);
-
-  y += 20;
-  ctx.font = `bold 10px ${sans}`;
-  ctx.fillStyle = '#bbb';
-  ctx.fillText('CORRECT', cols3[0], y);
-  ctx.fillText('AVG TIME', cols3[1], y);
-  ctx.fillText('ACCURACY', cols3[2], y);
-
-  // ── BELL CURVE
+  // ═══ STATS ROW — three columns, clean Nature typography
   y += 48;
-  const curveH = 240;
-  const cl = mx + 4, cr = W - mx - 4, cw = cr - cl;
+  const c3 = [mx + 80, W / 2, W - mx - 80];
+
+  ctx.font = `bold 36px ${sans}`;
+  ctx.fillStyle = text1;
+  ctx.fillText(`${correct}/${total}`, c3[0], y);
+  ctx.fillText(`${avgTime}s`, c3[1], y);
+  ctx.fillText(`${pctVal}%`, c3[2], y);
+
+  y += 24;
+  ctx.font = `bold 11px ${sans}`;
+  ctx.fillStyle = textMuted;
+  ctx.fillText('Correct', c3[0], y);
+  ctx.fillText('Avg. time', c3[1], y);
+  ctx.fillText('Accuracy', c3[2], y);
+
+  // ═══ 1px BORDER
+  y += 28;
+  ctx.beginPath();
+  ctx.moveTo(mx, y);
+  ctx.lineTo(W - mx, y);
+  ctx.strokeStyle = border;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // ═══ BELL CURVE — Nature figure style
+  y += 32;
+  ctx.textAlign = 'left';
+  ctx.font = `bold 11px ${sans}`;
+  ctx.fillStyle = text2;
+  ctx.fillText('Fig. 1', mx, y);
+  ctx.font = `11px ${sans}`;
+  ctx.fillStyle = textMuted;
+  ctx.fillText('  |  Normal distribution with subject position', mx + ctx.measureText('Fig. 1').width, y);
+
+  y += 24;
+  const curveH = 200;
+  const cl = mx, cr = W - mx, cw = cr - cl;
   const mean = 100, sd = 15, iqMin = 55, iqMax = 155;
   function gauss(x) { return Math.exp(-0.5 * Math.pow((x - mean) / sd, 2)); }
-
-  // Caption
-  ctx.textAlign = 'left';
-  ctx.font = `bold 10px ${sans}`;
-  ctx.fillStyle = '#bbb';
-  ctx.fillText('FIG. 1  \u2014  Normal distribution with subject position', cl, y);
-  y += 20;
 
   // Shaded regions
   const lx85 = cl + ((85 - iqMin) / (iqMax - iqMin)) * cw;
   const lx115 = cl + ((115 - iqMin) / (iqMax - iqMin)) * cw;
 
-  // Below avg
+  // Below avg — faint rust
   ctx.beginPath();
   ctx.moveTo(cl, y + curveH);
   for (let i = 0; i <= cw; i++) {
     const v = iqMin + (i / cw) * (iqMax - iqMin);
     if (v <= 85) ctx.lineTo(cl + i, y + curveH - gauss(v) * curveH);
   }
-  ctx.lineTo(lx85, y + curveH);
-  ctx.closePath();
-  ctx.fillStyle = 'rgba(183,70,22,0.05)';
-  ctx.fill();
+  ctx.lineTo(lx85, y + curveH); ctx.closePath();
+  ctx.fillStyle = 'rgba(183,70,22,0.04)'; ctx.fill();
 
-  // Average
+  // Average — faint accent
   ctx.beginPath();
   ctx.moveTo(lx85, y + curveH);
   for (let i = 0; i <= cw; i++) {
     const v = iqMin + (i / cw) * (iqMax - iqMin);
     if (v >= 85 && v <= 115) ctx.lineTo(cl + i, y + curveH - gauss(v) * curveH);
   }
-  ctx.lineTo(lx115, y + curveH);
-  ctx.closePath();
-  ctx.fillStyle = 'rgba(0,102,153,0.06)';
-  ctx.fill();
+  ctx.lineTo(lx115, y + curveH); ctx.closePath();
+  ctx.fillStyle = 'rgba(0,102,153,0.05)'; ctx.fill();
 
-  // Above avg
+  // Above avg — faint green
   ctx.beginPath();
   ctx.moveTo(lx115, y + curveH);
   for (let i = 0; i <= cw; i++) {
     const v = iqMin + (i / cw) * (iqMax - iqMin);
     if (v >= 115) ctx.lineTo(cl + i, y + curveH - gauss(v) * curveH);
   }
-  ctx.lineTo(cr, y + curveH);
-  ctx.closePath();
-  ctx.fillStyle = 'rgba(26,122,46,0.05)';
-  ctx.fill();
+  ctx.lineTo(cr, y + curveH); ctx.closePath();
+  ctx.fillStyle = 'rgba(26,122,46,0.04)'; ctx.fill();
 
-  // Curve stroke
+  // Curve stroke — #d5d5d5
   ctx.beginPath();
   for (let i = 0; i <= cw; i++) {
     const v = iqMin + (i / cw) * (iqMax - iqMin);
     const py = y + curveH - gauss(v) * curveH;
     i === 0 ? ctx.moveTo(cl + i, py) : ctx.lineTo(cl + i, py);
   }
-  ctx.strokeStyle = '#c0c0c0';
+  ctx.strokeStyle = border;
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  // X axis
+  // X axis — #d5d5d5
   ctx.beginPath();
   ctx.moveTo(cl, y + curveH);
   ctx.lineTo(cr, y + curveH);
-  ctx.strokeStyle = '#ddd';
+  ctx.strokeStyle = border;
   ctx.lineWidth = 1;
   ctx.stroke();
 
-  // Ticks + labels
+  // Ticks + labels — Nature axis style
   ctx.textAlign = 'center';
-  ctx.font = `10px ${sans}`;
-  ctx.fillStyle = '#bbb';
+  ctx.font = `11px ${sans}`;
+  ctx.fillStyle = textLight;
   for (let v = 70; v <= 150; v += 10) {
     const x = cl + ((v - iqMin) / (iqMax - iqMin)) * cw;
-    if (v % 20 === 0 || v === 70) ctx.fillText(v.toString(), x, y + curveH + 16);
+    const major = v % 20 === 0 || v === 70;
+    if (major) ctx.fillText(v.toString(), x, y + curveH + 18);
     ctx.beginPath();
     ctx.moveTo(x, y + curveH);
-    ctx.lineTo(x, y + curveH + (v % 20 === 0 || v === 70 ? 5 : 3));
-    ctx.strokeStyle = '#ddd';
+    ctx.lineTo(x, y + curveH + (major ? 6 : 3));
+    ctx.strokeStyle = border;
     ctx.stroke();
   }
 
   // Region labels
   ctx.font = `9px ${sans}`;
-  ctx.fillStyle = '#ccc';
-  ctx.fillText('BELOW AVG', cl + ((72 - iqMin) / (iqMax - iqMin)) * cw, y + curveH + 30);
-  ctx.fillText('AVERAGE', cl + ((100 - iqMin) / (iqMax - iqMin)) * cw, y + curveH + 30);
-  ctx.fillText('ABOVE AVG', cl + ((128 - iqMin) / (iqMax - iqMin)) * cw, y + curveH + 30);
+  ctx.fillStyle = '#cccccc';
+  ctx.fillText('Below average', cl + ((72 - iqMin) / (iqMax - iqMin)) * cw, y + curveH + 34);
+  ctx.fillText('Average', cl + ((100 - iqMin) / (iqMax - iqMin)) * cw, y + curveH + 34);
+  ctx.fillText('Above average', cl + ((128 - iqMin) / (iqMax - iqMin)) * cw, y + curveH + 34);
 
-  // ── User marker
+  // ── User marker — dashed line
   const ciq = Math.min(Math.max(iq, iqMin + 3), iqMax - 3);
   const ux = cl + ((ciq - iqMin) / (iqMax - iqMin)) * cw;
-  const uy = y + curveH - gauss(ciq) * curveH;
+  const uy_pt = y + curveH - gauss(ciq) * curveH;
 
   ctx.beginPath();
-  ctx.moveTo(ux, uy + 2);
+  ctx.moveTo(ux, uy_pt + 2);
   ctx.lineTo(ux, y + curveH);
   ctx.strokeStyle = vcc;
   ctx.lineWidth = 2;
-  ctx.setLineDash([5, 4]);
+  ctx.setLineDash([4, 3]);
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // Dot with ring
+  // Dot — solid with white ring
   ctx.beginPath();
-  ctx.arc(ux, uy, 7, 0, Math.PI * 2);
+  ctx.arc(ux, uy_pt, 6, 0, Math.PI * 2);
   ctx.fillStyle = vcc;
   ctx.fill();
-  ctx.strokeStyle = '#fff';
-  ctx.lineWidth = 3;
+  ctx.strokeStyle = white;
+  ctx.lineWidth = 2.5;
   ctx.stroke();
-  ctx.beginPath();
-  ctx.arc(ux, uy, 10, 0, Math.PI * 2);
-  ctx.strokeStyle = vcc;
-  ctx.lineWidth = 1.5;
-  ctx.globalAlpha = 0.3;
-  ctx.stroke();
-  ctx.globalAlpha = 1;
 
-  // Label
-  ctx.font = `bold 13px ${sans}`;
+  // Label — handle or YOU
+  ctx.font = `bold 12px ${sans}`;
   ctx.fillStyle = vcc;
-  ctx.fillText(handle || 'YOU', ux, uy - 18);
+  ctx.textAlign = 'center';
+  ctx.fillText(handle || 'YOU', ux, uy_pt - 14);
 
-  // ── FOOTER — pinned to bottom
-  const footY = H - 44;
+  // ═══ FOOTER — Nature style: 1px border + text
+  const fy = H - 52;
   ctx.beginPath();
-  ctx.moveTo(mx, footY);
-  ctx.lineTo(W - mx, footY);
-  ctx.strokeStyle = '#e8e8e8';
+  ctx.moveTo(0, fy);
+  ctx.lineTo(W, fy);
+  ctx.strokeStyle = border;
   ctx.lineWidth = 1;
   ctx.stroke();
 
+  // Footer bg — very light
+  ctx.fillStyle = bgMid;
+  ctx.fillRect(0, fy + 1, W, H - fy - 1);
+
   ctx.textAlign = 'left';
-  ctx.font = `12px ${sans}`;
-  ctx.fillStyle = '#bbb';
-  ctx.fillText('chiefautism.github.io/reverse-turing-test', mx, footY + 24);
+  ctx.font = `13px ${sans}`;
+  ctx.fillStyle = textMuted;
+  ctx.fillText('Can you tell human from machine?', mx, fy + 30);
 
   ctx.textAlign = 'right';
-  ctx.font = `bold 12px ${sans}`;
-  ctx.fillStyle = '#006699';
-  ctx.fillText('@chiefofautism', W - mx, footY + 24);
+  ctx.font = `bold 13px ${sans}`;
+  ctx.fillStyle = accent;
+  ctx.fillText('@chiefofautism', W - mx, fy + 30);
 }
 
 // ── SHARE BUTTONS ──
