@@ -1,0 +1,1758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#000000">
+<title>The Reverse Turing Test</title>
+<style>
+@font-face {
+  font-family: 'Harding';
+  src: url('https://www.nature.com/static/fonts/harding/HardingText-Regular-Web.woff2') format('woff2');
+  font-weight: 400; font-display: swap;
+}
+@font-face {
+  font-family: 'Harding';
+  src: url('https://www.nature.com/static/fonts/harding/HardingText-Bold-Web.woff2') format('woff2');
+  font-weight: 700; font-display: swap;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #ffffff;
+  --bg-dark: #000000;
+  --bg-mid: #f5f5f5;
+  --bg-surface: #fafafa;
+  --bg-accent: #006699;
+  --text: #222222;
+  --text-secondary: #333333;
+  --text-dim: #666666;
+  --text-muted: #999999;
+  --text-inverse: #eeeeee;
+  --accent: #006699;
+  --accent-hover: #0088cc;
+  --accent-rust: #b74616;
+  --border: #d5d5d5;
+  --border-dark: #2f2f2f;
+  --correct: #1a7a2e;
+  --correct-bg: rgba(26,122,46,0.06);
+  --wrong: #b74616;
+  --wrong-bg: rgba(183,70,22,0.06);
+  --serif: 'Harding', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  --sans: -apple-system, system-ui, 'Segoe UI', Roboto, 'Oxygen-Sans', Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+  --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  --transition: 0.2s;
+  --radius: 2px;
+}
+
+html { font-size: 16px; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
+}
+
+/* ── HEADER BAR (Nature style) ── */
+.site-header {
+  width: 100%;
+  background: var(--bg-dark);
+  color: var(--text-inverse);
+  padding: 0 24px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: fixed; top: 0; left: 0; z-index: 100;
+}
+
+.site-logo {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: #fff;
+  text-decoration: none;
+}
+
+.site-nav {
+  display: flex; gap: 20px; align-items: center;
+}
+
+.site-nav a {
+  font-size: 13px; color: var(--text-inverse);
+  text-decoration: none; opacity: 0.7;
+  transition: opacity var(--transition);
+}
+
+.site-nav a:hover { opacity: 1; }
+
+/* ── LAYOUT ── */
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 80px 24px 60px;
+  min-height: 100vh;
+}
+
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ── ARTICLE STYLE (Nature paper feel) ── */
+.article-type {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.article-title {
+  font-family: var(--serif);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+  letter-spacing: -0.625px;
+  margin-bottom: 16px;
+}
+
+.article-subtitle {
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  line-height: 1.76;
+  margin-bottom: 24px;
+}
+
+.article-meta {
+  font-size: 13px;
+  color: var(--text-muted);
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 32px;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.article-meta a { color: var(--accent); text-decoration: none; }
+.article-meta a:hover { text-decoration: underline; }
+
+/* ── LANDING ── */
+.landing-body {
+  font-size: 16px;
+  color: var(--text-secondary);
+  line-height: 1.76;
+  margin-bottom: 32px;
+}
+
+.landing-body p { margin-bottom: 16px; }
+
+.landing-body strong { color: var(--text); }
+
+/* Selectors */
+.selector-group {
+  margin-bottom: 24px;
+}
+
+.selector-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.selector-options {
+  display: flex; gap: 4px; flex-wrap: wrap;
+}
+
+.sel-opt {
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--text-dim);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 16px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.sel-opt:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.sel-opt.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.btn-start {
+  font-family: var(--sans);
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius);
+  padding: 12px 40px;
+  cursor: pointer;
+  transition: background var(--transition);
+  margin-top: 8px;
+}
+
+.btn-start:hover { background: var(--accent-hover); }
+.btn-start:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.landing-source {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.landing-source a { color: var(--accent); text-decoration: none; }
+.landing-source a:hover { text-decoration: underline; }
+
+/* ── LOADING ── */
+.loading-screen {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 120px 0; gap: 16px;
+}
+
+.spinner {
+  width: 32px; height: 32px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-text { font-size: 14px; color: var(--text-muted); }
+
+/* ── QUESTION SCREEN ── */
+.q-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+
+.q-counter {
+  font-size: 14px; font-weight: 700; color: var(--text);
+}
+
+.q-timer {
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--text-dim);
+  display: flex; align-items: center; gap: 6px;
+}
+
+.timer-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--correct);
+  animation: pulse 1s ease-in-out infinite;
+}
+.timer-dot.warning { background: #d68000; }
+.timer-dot.danger { background: var(--wrong); animation-duration: 0.4s; }
+
+.progress-wrap {
+  width: 100%; height: 2px; background: #eee;
+  margin-bottom: 32px;
+}
+
+.progress-bar {
+  height: 100%; background: var(--accent);
+  transition: width 0.4s ease-out; width: 0%;
+}
+
+/* Question prompt */
+.q-section-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.q-question-text {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.4;
+  letter-spacing: -0.3px;
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Sample text card */
+.sample-card {
+  margin-bottom: 24px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.sample-heading {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.sample-text {
+  font-size: 16px;
+  color: var(--text-secondary);
+  line-height: 1.76;
+  padding: 24px;
+  background: var(--bg-mid);
+  border-left: 4px solid var(--border);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Verdict buttons */
+.verdict-buttons {
+  display: flex; gap: 8px;
+}
+
+.verdict-btn {
+  flex: 1;
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 700;
+  padding: 14px 24px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition);
+  display: flex; align-items: center;
+  justify-content: center; gap: 8px;
+}
+
+.verdict-btn .key-hint {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 2px;
+  transition: all var(--transition);
+}
+
+.btn-human {
+  color: var(--correct);
+  background: var(--bg);
+  border: 2px solid var(--correct);
+}
+
+.btn-human .key-hint {
+  background: var(--correct-bg);
+  color: var(--correct);
+}
+
+.btn-human:hover {
+  background: var(--correct);
+  color: #fff;
+}
+
+.btn-human:hover .key-hint {
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+}
+
+.btn-gpt {
+  color: var(--accent-rust);
+  background: var(--bg);
+  border: 2px solid var(--accent-rust);
+}
+
+.btn-gpt .key-hint {
+  background: var(--wrong-bg);
+  color: var(--accent-rust);
+}
+
+.btn-gpt:hover {
+  background: var(--accent-rust);
+  color: #fff;
+}
+
+.btn-gpt:hover .key-hint {
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+}
+
+.verdict-btn.chosen-correct {
+  background: var(--correct); color: #fff;
+  border-color: var(--correct); pointer-events: none;
+}
+.verdict-btn.chosen-correct .key-hint { background: rgba(255,255,255,0.2); color: #fff; }
+
+.verdict-btn.chosen-wrong {
+  background: var(--wrong); color: #fff;
+  border-color: var(--wrong); pointer-events: none;
+}
+.verdict-btn.chosen-wrong .key-hint { background: rgba(255,255,255,0.2); color: #fff; }
+
+.verdict-btn.was-answer {
+  border-color: var(--correct); opacity: 0.4; pointer-events: none;
+}
+
+.verdict-btn.disabled {
+  opacity: 0.25; pointer-events: none;
+}
+
+/* Explanation */
+.explanation {
+  margin-top: 24px;
+  padding: 20px 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.explanation-label {
+  font-size: 14px; font-weight: 700; margin-bottom: 8px;
+}
+
+.explanation-label.correct { color: var(--correct); }
+.explanation-label.wrong { color: var(--wrong); }
+
+.explanation-text {
+  font-size: 14px; color: var(--text-dim); line-height: 1.6;
+}
+
+.btn-next {
+  font-family: var(--sans);
+  font-size: 14px; font-weight: 700;
+  color: var(--accent);
+  background: none; border: none;
+  cursor: pointer; padding: 12px 0;
+  margin-top: 16px;
+  transition: color var(--transition);
+  float: right;
+}
+
+.btn-next:hover { color: var(--accent-hover); }
+
+/* ── RESULTS ── */
+.results-header {
+  text-align: center;
+  padding-bottom: 32px;
+  border-bottom: 5px solid var(--bg-dark);
+  margin-bottom: 32px;
+}
+
+.results-type {
+  font-size: 13px; font-weight: 700;
+  color: var(--accent); text-transform: uppercase;
+  letter-spacing: 0.5px; margin-bottom: 8px;
+}
+
+.results-verdict {
+  font-family: var(--serif);
+  font-size: 32px; font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.625px;
+  margin-bottom: 8px;
+  opacity: 0; transform: translateY(10px);
+  transition: all 0.6s ease-out;
+}
+
+.results-verdict.revealed { opacity: 1; transform: translateY(0); }
+.results-verdict.genius { color: var(--correct); }
+.results-verdict.sharp { color: var(--accent); }
+.results-verdict.average { color: #d68000; }
+.results-verdict.bot-brained { color: var(--accent-rust); }
+
+.results-tagline {
+  font-size: 16px; color: var(--text-dim); line-height: 1.6;
+  opacity: 0; transition: opacity 0.5s 0.8s;
+}
+.results-tagline.revealed { opacity: 1; }
+
+/* Score box */
+.results-score-box {
+  background: var(--bg-mid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.results-iq-number {
+  font-family: var(--mono);
+  font-size: 56px; font-weight: 700;
+  color: var(--text); line-height: 1;
+  margin-bottom: 4px;
+}
+
+.results-iq-label {
+  font-size: 13px; text-transform: uppercase;
+  letter-spacing: 0.5px; color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.results-bar-wrap {
+  width: 100%; height: 4px; background: #e0e0e0;
+  border-radius: 2px; overflow: hidden;
+}
+
+.results-bar {
+  height: 100%; border-radius: 2px;
+  transition: width 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.8s;
+  width: 0%;
+}
+
+.results-bar.genius-bar { background: var(--correct); }
+.results-bar.sharp-bar { background: var(--accent); }
+.results-bar.average-bar { background: #d68000; }
+.results-bar.bot-brained-bar { background: var(--accent-rust); }
+
+/* Stats */
+.results-stats {
+  display: flex; justify-content: center; gap: 48px;
+  margin-bottom: 32px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--border);
+}
+
+.results-stat { text-align: center; }
+
+.results-stat-value {
+  font-family: var(--mono);
+  font-size: 24px; font-weight: 700; color: var(--text);
+  display: block;
+}
+
+.results-stat-label {
+  font-size: 12px; text-transform: uppercase;
+  letter-spacing: 0.5px; color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Breakdown */
+.results-breakdown { margin-bottom: 32px; }
+
+.breakdown-title {
+  font-family: var(--serif);
+  font-size: 20px; font-weight: 700;
+  color: var(--text); margin-bottom: 16px;
+  letter-spacing: -0.3px;
+}
+
+.breakdown-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+.breakdown-row:last-child { border-bottom: none; }
+
+.breakdown-q {
+  font-size: 14px; color: var(--text-secondary); flex: 1; padding-right: 16px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.breakdown-result {
+  font-size: 12px; font-weight: 700;
+  padding: 2px 8px; border-radius: var(--radius);
+}
+
+.breakdown-result.correct-tag {
+  color: var(--correct); background: var(--correct-bg);
+}
+
+.breakdown-result.wrong-tag {
+  color: var(--accent-rust); background: var(--wrong-bg);
+}
+
+.btn-retry {
+  font-family: var(--sans);
+  font-size: 14px; font-weight: 700;
+  color: var(--accent);
+  background: none;
+  border: 2px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 12px 32px;
+  cursor: pointer;
+  transition: all var(--transition);
+  display: block;
+  margin: 0 auto;
+}
+
+.btn-retry:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Share card */
+.share-section {
+  margin-bottom: 32px;
+  text-align: center;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.share-section-title {
+  font-size: 13px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--text-muted); margin-bottom: 16px;
+}
+
+.share-canvas-wrap {
+  margin-bottom: 16px;
+  display: flex; justify-content: center;
+}
+
+.share-canvas-wrap canvas {
+  border: 1px solid var(--border);
+  max-width: 100%;
+  height: auto;
+}
+
+.share-handle-row {
+  display: flex; gap: 8px; align-items: center;
+  justify-content: center; margin-bottom: 16px;
+}
+
+.share-handle-row label {
+  font-size: 13px; color: var(--text-dim);
+}
+
+.share-handle-input {
+  font-family: var(--sans);
+  font-size: 14px; color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 12px; width: 180px;
+  outline: none; transition: border-color var(--transition);
+}
+
+.share-handle-input:focus { border-color: var(--accent); }
+
+.share-buttons {
+  display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+}
+
+.share-btn {
+  font-family: var(--sans);
+  font-size: 13px; font-weight: 700;
+  padding: 8px 20px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.share-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.share-btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.share-btn.primary:hover {
+  background: var(--accent-hover);
+}
+
+.share-copied {
+  font-size: 12px; color: var(--correct);
+  margin-top: 8px; opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.share-copied.visible { opacity: 1; }
+
+/* Author link */
+.author-link {
+  text-align: center;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+  margin-bottom: 32px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.author-link a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.author-link a:hover { text-decoration: underline; }
+
+/* Error */
+.error-msg {
+  color: var(--accent-rust); font-size: 14px; margin-top: 12px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+  .container { padding: 64px 16px 40px; }
+  .article-title { font-size: 24px; }
+  .article-subtitle { font-size: 16px; }
+  .verdict-buttons { flex-direction: column; }
+  .results-iq-number { font-size: 42px; }
+  .results-stats { gap: 24px; }
+  .site-nav { display: none; }
+  .sample-text { padding: 16px; font-size: 15px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="site-header">
+  <a class="site-logo" href="#">The Reverse Turing Test</a>
+  <nav class="site-nav">
+    <a href="#">About</a>
+    <a href="#">Methodology</a>
+    <a href="https://huggingface.co/datasets/Hello-SimpleAI/HC3" target="_blank">Dataset</a>
+  </nav>
+</header>
+
+<div class="container">
+
+  <!-- ═══ LANDING ═══ -->
+  <div class="screen active" id="screen-landing">
+    <div class="article-type">Original Research</div>
+    <h1 class="article-title">The Reverse Turing Test</h1>
+    <p class="article-subtitle">
+      Can you still tell human writing from machine output? A cognitive benchmark measuring your ability to distinguish authentic human text from AI-generated responses.
+    </p>
+    <div class="article-meta">
+      <a href="https://x.com/chiefofautism" target="_blank" style="display:inline-flex;align-items:center;gap:6px;"><img src="https://pbs.twimg.com/profile_images/1965500169237000192/-ADaxntW_400x400.jpg" style="width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:middle;">Dr. Chief of Autism</a>
+      <span>HC3 Corpus, 2023&ndash;2026</span>
+      <span>n = 24,322 paired responses</span>
+      <a href="https://huggingface.co/datasets/Hello-SimpleAI/HC3" target="_blank">Open Access</a>
+    </div>
+
+    <div class="landing-body">
+      <p>
+        You will be presented with a question and a single answer. Your task is to determine whether the answer was written by <strong>a human</strong> or generated by <strong>ChatGPT</strong>. Both responses are real &mdash; sourced from the Human ChatGPT Comparison Corpus.
+      </p>
+      <p>
+        Each session draws fresh samples from a pool of over 17,000 paired responses. No two tests are identical. Your results are scored and mapped to a detection-IQ scale.
+      </p>
+    </div>
+
+    <div class="selector-group">
+      <div class="selector-label">Rounds</div>
+      <div class="selector-options" id="round-options">
+        <button class="sel-opt active" data-n="20">Standard (20)</button>
+        <button class="sel-opt" data-n="35">Extended (35)</button>
+        <button class="sel-opt" data-n="50">Research (50)</button>
+      </div>
+    </div>
+
+    <div class="selector-group">
+      <div class="selector-label">Domain</div>
+      <div class="selector-options" id="dataset-selector">
+        <button class="sel-opt active" data-ds="reddit_eli5">ELI5</button>
+        <button class="sel-opt" data-ds="open_qa">Open QA</button>
+        <button class="sel-opt" data-ds="finance">Finance</button>
+        <button class="sel-opt" data-ds="medicine">Medicine</button>
+        <button class="sel-opt" data-ds="wiki_csai">Wiki / CS</button>
+        <button class="sel-opt" data-ds="all">All Domains</button>
+      </div>
+    </div>
+
+    <button class="btn-start" id="btn-start">Begin Assessment</button>
+
+    <div class="landing-source">
+      Data: <a href="https://huggingface.co/datasets/Hello-SimpleAI/HC3" target="_blank">Hello-SimpleAI/HC3</a>
+      &mdash; Human ChatGPT Comparison Corpus.
+      Guo, Z. et al. (2023). <em>How Close is ChatGPT to Human Experts?</em>
+      <br><br>
+      <span style="color:#999;">Your results are collected via anonymous telemetry so we can analyze how cooked humanity really is.
+      No personal data is stored. Just scores, vibes, and existential dread.</span>
+    </div>
+  </div>
+
+  <!-- ═══ LOADING ═══ -->
+  <div class="screen" id="screen-loading">
+    <div class="loading-screen">
+      <div class="spinner"></div>
+      <div class="loading-text">Fetching samples from HuggingFace Datasets API...</div>
+    </div>
+  </div>
+
+  <!-- ═══ QUESTION ═══ -->
+  <div class="screen" id="screen-question">
+    <div class="q-toolbar">
+      <span class="q-counter" id="q-counter">Question 1 of 10</span>
+      <span class="q-timer">
+        <span class="timer-dot" id="timer-dot"></span>
+        <span id="timer-display">0:45</span>
+      </span>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+    <div id="question-area"></div>
+  </div>
+
+  <!-- ═══ RESULTS ═══ -->
+  <div class="screen" id="screen-results">
+    <div class="results-header">
+      <div class="results-type">Assessment Results</div>
+      <div class="results-verdict" id="results-verdict"></div>
+      <div class="results-tagline" id="results-tagline"></div>
+    </div>
+    <div class="results-score-box">
+      <div class="results-iq-number" id="results-iq">&mdash;</div>
+      <div class="results-iq-label">Reverse Turing Score</div>
+      <div class="results-bar-wrap">
+        <div class="results-bar" id="results-bar"></div>
+      </div>
+    </div>
+    <div class="results-stats">
+      <div class="results-stat">
+        <span class="results-stat-value" id="stat-correct">0</span>
+        <span class="results-stat-label">Correct</span>
+      </div>
+      <div class="results-stat">
+        <span class="results-stat-value" id="stat-time">0s</span>
+        <span class="results-stat-label">Avg Time</span>
+      </div>
+      <div class="results-stat">
+        <span class="results-stat-value" id="stat-streak">0</span>
+        <span class="results-stat-label">Best Streak</span>
+      </div>
+    </div>
+    <div class="results-breakdown" id="results-breakdown"></div>
+
+    <!-- Share Card -->
+    <div class="share-section">
+      <div class="share-section-title">Share Your Results</div>
+      <div class="share-canvas-wrap">
+        <canvas id="share-canvas" width="810" height="1080"></canvas>
+      </div>
+      <div class="share-handle-row">
+        <label>Your X handle:</label>
+        <input type="text" class="share-handle-input" id="share-handle" placeholder="@username" value="">
+      </div>
+      <div class="share-buttons">
+        <button class="share-btn primary" id="btn-copy-image">Copy Image</button>
+        <button class="share-btn" id="btn-download-image">Download</button>
+        <button class="share-btn" id="btn-share-x">Post on X</button>
+      </div>
+      <div class="share-copied" id="share-copied">Copied to clipboard!</div>
+    </div>
+
+    <div class="author-link">
+      Created by <a href="https://x.com/chiefofautism" target="_blank">@chiefofautism</a>
+    </div>
+
+    <button class="btn-retry" id="btn-retry">Take Test Again</button>
+  </div>
+
+</div>
+
+<script>
+const HF_API = 'https://datasets-server.huggingface.co/rows';
+const DATASET = 'Hello-SimpleAI/HC3';
+const TIMER_SECONDS = 45;
+
+const DATASET_SIZES = {
+  reddit_eli5: 17000,
+  open_qa: 1100,
+  finance: 600,
+  medicine: 600,
+  wiki_csai: 600,
+  all: 24000
+};
+
+let selectedRounds = 20;
+let selectedDataset = 'reddit_eli5';
+
+let state = {
+  rounds: [], current: 0, answers: [], times: [],
+  timerInterval: null, timeLeft: TIMER_SECONDS,
+  roundStart: 0, answered: false, totalRounds: 10
+};
+
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+
+// ── SELECTORS ──
+$$('#round-options .sel-opt').forEach(btn => {
+  btn.addEventListener('click', () => {
+    $$('#round-options .sel-opt').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedRounds = parseInt(btn.dataset.n);
+  });
+});
+
+$$('#dataset-selector .sel-opt').forEach(btn => {
+  btn.addEventListener('click', () => {
+    $$('#dataset-selector .sel-opt').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedDataset = btn.dataset.ds;
+  });
+});
+
+// ── FETCH ──
+async function fetchRounds(numRounds, dataset) {
+  const batchSize = Math.min(100, numRounds * 2);
+  const maxOffset = Math.max(0, DATASET_SIZES[dataset] - batchSize);
+  const offset = Math.floor(Math.random() * maxOffset);
+  const url = `${HF_API}?dataset=${DATASET}&config=${dataset}&split=train&offset=${offset}&length=${batchSize}`;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`API error: ${response.status}`);
+  const data = await response.json();
+  const rows = data.rows;
+  if (!rows || rows.length === 0) throw new Error('No data returned');
+
+  const rounds = [];
+  const shuffled = rows.sort(() => Math.random() - 0.5);
+
+  for (let i = 0; i < Math.min(numRounds, shuffled.length); i++) {
+    const row = shuffled[i].row;
+    const q = cleanQuestion(row.question);
+    const ha = row.human_answers || [];
+    const ga = row.chatgpt_answers || [];
+    if (ha.length === 0 || ga.length === 0) continue;
+
+    const ht = ha[Math.floor(Math.random() * ha.length)];
+    const gt = ga[Math.floor(Math.random() * ga.length)];
+    const showHuman = Math.random() > 0.5;
+
+    rounds.push({
+      question: q,
+      text: showHuman ? ht : gt,
+      author: showHuman ? 'human' : 'gpt',
+      humanSample: ht.substring(0, 200),
+      gptSample: gt.substring(0, 200)
+    });
+  }
+
+  if (rounds.length < numRounds) {
+    const more = await fetchMore(numRounds - rounds.length, dataset, offset + batchSize);
+    rounds.push(...more);
+  }
+  return rounds.slice(0, numRounds);
+}
+
+async function fetchMore(needed, dataset, startOffset) {
+  const maxOff = Math.max(0, DATASET_SIZES[dataset] - 100);
+  const offset = Math.min(startOffset, maxOff);
+  try {
+    const url = `${HF_API}?dataset=${DATASET}&config=${dataset}&split=train&offset=${offset}&length=${Math.min(100, needed * 2)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const rows = data.rows || [];
+    const rounds = [];
+    for (const item of rows) {
+      if (rounds.length >= needed) break;
+      const row = item.row;
+      const ha = row.human_answers || [];
+      const ga = row.chatgpt_answers || [];
+      if (ha.length === 0 || ga.length === 0) continue;
+      const showHuman = Math.random() > 0.5;
+      const ht = ha[Math.floor(Math.random() * ha.length)];
+      const gt = ga[Math.floor(Math.random() * ga.length)];
+      rounds.push({
+        question: cleanQuestion(row.question),
+        text: showHuman ? ht : gt,
+        author: showHuman ? 'human' : 'gpt',
+        humanSample: ht.substring(0, 200),
+        gptSample: gt.substring(0, 200)
+      });
+    }
+    return rounds;
+  } catch { return []; }
+}
+
+function cleanQuestion(q) {
+  return q.replace(/\s+/g, ' ').replace(/\\n/g, ' ')
+    .replace(/\s*Please explain like I'm five\.?\s*/gi, '')
+    .replace(/\s*ELI5\s*:?\s*/gi, '')
+    .replace(/\s*explain like i'?m 5\.?\s*/gi, '').trim();
+}
+
+function truncateText(text, maxLen) {
+  if (text.length <= maxLen) return text;
+  const t = text.substring(0, maxLen);
+  const cut = Math.max(t.lastIndexOf('.'), t.lastIndexOf('?'), t.lastIndexOf('!'));
+  if (cut > maxLen * 0.5) return text.substring(0, cut + 1);
+  return t + '...';
+}
+
+function escapeHtml(text) {
+  const d = document.createElement('div');
+  d.textContent = text;
+  return d.innerHTML;
+}
+
+// ── SCREENS ──
+function showScreen(id) {
+  $$('.screen').forEach(s => s.classList.remove('active'));
+  $(`#screen-${id}`).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ── TIMER ──
+function startTimer() {
+  state.timeLeft = TIMER_SECONDS;
+  state.roundStart = Date.now();
+  updateTimer();
+  clearInterval(state.timerInterval);
+  state.timerInterval = setInterval(() => {
+    state.timeLeft--;
+    updateTimer();
+    if (state.timeLeft <= 0) {
+      clearInterval(state.timerInterval);
+      if (!state.answered) submitAnswer(null);
+    }
+  }, 1000);
+}
+
+function updateTimer() {
+  const m = Math.floor(state.timeLeft / 60);
+  const s = state.timeLeft % 60;
+  $('#timer-display').textContent = `${m}:${s.toString().padStart(2, '0')}`;
+  const dot = $('#timer-dot');
+  dot.className = 'timer-dot';
+  if (state.timeLeft <= 5) dot.classList.add('danger');
+  else if (state.timeLeft <= 10) dot.classList.add('warning');
+}
+
+// ── RENDER ──
+function renderRound() {
+  state.answered = false;
+  const r = state.rounds[state.current];
+  const total = state.totalRounds;
+
+  $('#q-counter').textContent = `Question ${state.current + 1} of ${total}`;
+  $('#progress-bar').style.width = `${(state.current / total) * 100}%`;
+
+  const displayText = truncateText(r.text, 1200);
+  const area = $('#question-area');
+  area.innerHTML = `
+    <div class="q-section-label">Identify the author</div>
+    <div class="q-question-text">${escapeHtml(r.question)}</div>
+    <div class="sample-card">
+      <div class="sample-heading">Response</div>
+      <div class="sample-text">${escapeHtml(displayText)}</div>
+    </div>
+    <div class="verdict-buttons">
+      <button class="verdict-btn btn-human" data-answer="human">
+        <span class="key-hint">H</span> Human
+      </button>
+      <button class="verdict-btn btn-gpt" data-answer="gpt">
+        <span class="key-hint">G</span> ChatGPT
+      </button>
+    </div>
+  `;
+
+  area.querySelectorAll('.verdict-btn').forEach(btn => {
+    btn.addEventListener('click', () => submitAnswer(btn.dataset.answer));
+  });
+  startTimer();
+}
+
+// ── SUBMIT ──
+function submitAnswer(answer) {
+  if (state.answered) return;
+  state.answered = true;
+  clearInterval(state.timerInterval);
+
+  const elapsed = (Date.now() - state.roundStart) / 1000;
+  const r = state.rounds[state.current];
+  const correct = answer === r.author;
+  const timedOut = answer === null;
+
+  state.answers.push({ answer, correct: timedOut ? false : correct, elapsed, round: r, timedOut });
+  state.times.push(elapsed);
+
+  $$('.verdict-btn').forEach(btn => {
+    if (timedOut) {
+      btn.classList.add('disabled');
+      if (btn.dataset.answer === r.author) btn.classList.add('was-answer');
+    } else if (btn.dataset.answer === answer) {
+      btn.classList.add(correct ? 'chosen-correct' : 'chosen-wrong');
+    } else if (btn.dataset.answer === r.author) {
+      btn.classList.add('was-answer');
+    } else {
+      btn.classList.add('disabled');
+    }
+  });
+
+  const authorLabel = r.author === 'gpt' ? 'ChatGPT' : 'a human';
+  const explanationText = r.author === 'gpt' ? detectGptPatterns(r.text) : detectHumanPatterns(r.text);
+
+  const area = $('#question-area');
+  const expl = document.createElement('div');
+  expl.className = 'explanation';
+  expl.innerHTML = `
+    <div class="explanation-label ${timedOut ? 'wrong' : (correct ? 'correct' : 'wrong')}">
+      ${timedOut ? 'Time expired' : (correct ? 'Correct' : 'Incorrect')} &mdash; written by ${authorLabel}
+    </div>
+    <div class="explanation-text">${explanationText}</div>
+  `;
+  area.appendChild(expl);
+
+  const nextBtn = document.createElement('button');
+  nextBtn.className = 'btn-next';
+  nextBtn.textContent = state.current < state.totalRounds - 1 ? 'Next question \u2192' : 'View results \u2192';
+  nextBtn.addEventListener('click', advanceRound);
+  area.appendChild(nextBtn);
+  nextBtn.focus();
+}
+
+// ── PATTERN DETECTION ──
+function detectGptPatterns(text) {
+  const t = text.toLowerCase();
+  const signals = [];
+  const slop = [
+    [/\bdelve\b/g, '"delve"'], [/\btapestry\b/g, '"tapestry"'],
+    [/\blandscape\b/g, '"landscape"'], [/\bgame.?changer\b/g, '"game-changer"'],
+    [/\bit'?s worth noting/g, '"it\'s worth noting"'], [/\bfundamentally\b/g, '"fundamentally"'],
+    [/\beverchanging\b|\bever-changing\b|\bever.evolving\b/g, '"ever-evolving"'],
+    [/\bhowever,? it'?s important/g, '"however, it\'s important"'],
+    [/\bin conclusion\b/g, '"in conclusion"'], [/\bmoreover\b/g, '"moreover"'],
+    [/\bfurthermore\b/g, '"furthermore"'], [/\bnevertheless\b/g, '"nevertheless"'],
+    [/\bmeticulous\b/g, '"meticulous"'], [/\bunderscores?\b/g, '"underscore"'],
+    [/\bshowcasing\b/g, '"showcasing"'], [/\bleverage\b/g, '"leverage"'],
+    [/\bnavigat(e|ing)\b/g, '"navigate"'], [/\bembark\b/g, '"embark"'],
+    [/\brealm\b/g, '"realm"'], [/\bfoster(ing|s)?\b/g, '"foster"'],
+    [/\bplethora\b/g, '"plethora"'], [/\bmyriad\b/g, '"myriad"'],
+    [/\bcrucial\b/g, '"crucial"'], [/\bseamless\b/g, '"seamless"'],
+    [/\brobust\b/g, '"robust"'], [/\btransformative\b/g, '"transformative"'],
+    [/\bholistic\b/g, '"holistic"'], [/\bvibrant\b/g, '"vibrant"'],
+    [/\bnot just .{3,30}, but also\b/g, '"not just X, but also Y"'],
+    [/\bwhether you'?re .{5,40} or\b/g, '"whether you\'re X or Y"'],
+  ];
+  const found = [];
+  for (const [rx, label] of slop) { if (rx.test(t)) found.push(label); }
+  if (found.length > 0) signals.push(`Detected GPT-typical phrasing: ${found.join(', ')}`);
+
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 5);
+  if (sentences.length > 3) {
+    const lens = sentences.map(s => s.trim().length);
+    const avg = lens.reduce((a, b) => a + b, 0) / lens.length;
+    const std = Math.sqrt(lens.reduce((s, l) => s + Math.pow(l - avg, 2), 0) / lens.length);
+    if (std < avg * 0.35) signals.push('Unusually uniform sentence length, characteristic of AI-generated text.');
+  }
+  if (/\bIn summary\b|\bOverall\b|\bIn conclusion\b/i.test(text) && text.indexOf('Overall') > text.length * 0.6) {
+    signals.push('Formulaic concluding statement typical of language model outputs.');
+  }
+  if (found.length === 0 && signals.length === 0) {
+    signals.push('The polished, evenly structured prose with no personal voice or hedging is characteristic of ChatGPT output.');
+  }
+  return signals.join(' ');
+}
+
+function detectHumanPatterns(text) {
+  const signals = [];
+  if (/\blol\b|\bhaha\b|\bimo\b|\btbh\b|\bomg\b|\bwtf\b/i.test(text))
+    signals.push('Informal internet language (lol, tbh, etc.) is rarely produced by ChatGPT.');
+  if (/\bi think\b|\bi guess\b|\bi mean\b|\bi feel like\b/i.test(text))
+    signals.push('Epistemic hedging ("I think", "I guess") indicates human uncertainty; ChatGPT tends to be authoritative.');
+  if (/\bmy \w+\b.*\b(told|said|taught|showed)\b/i.test(text) || /\bwhen i was\b/i.test(text))
+    signals.push('Personal anecdotes and references to lived experience are strongly human markers.');
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 5);
+  if (sentences.length > 3) {
+    const lens = sentences.map(s => s.trim().length);
+    const avg = lens.reduce((a, b) => a + b, 0) / lens.length;
+    const std = Math.sqrt(lens.reduce((s, l) => s + Math.pow(l - avg, 2), 0) / lens.length);
+    if (std > avg * 0.5) signals.push('High variance in sentence length suggests natural human writing rhythm.');
+  }
+  if (text.includes('...') || text.includes('--') || text.includes(' - '))
+    signals.push('Informal punctuation patterns (ellipses, dashes) are human writing markers.');
+  if (signals.length === 0)
+    signals.push('The imperfect flow, specific details, and conversational voice indicate human authorship.');
+  return signals.join(' ');
+}
+
+// ── ADVANCE ──
+function advanceRound() {
+  state.current++;
+  if (state.current >= state.totalRounds) setTimeout(showResults, 200);
+  else renderRound();
+}
+
+// ── RESULTS ──
+function showResults() {
+  showScreen('results');
+
+  const total = state.totalRounds;
+  const correctCount = state.answers.filter(a => a.correct).length;
+  const pct = correctCount / total;
+  const avgTime = (state.times.reduce((a, b) => a + b, 0) / state.times.length).toFixed(1);
+
+  let streak = 0, bestStreak = 0;
+  state.answers.forEach(a => {
+    if (a.correct) { streak++; bestStreak = Math.max(bestStreak, streak); }
+    else streak = 0;
+  });
+
+  const iq = Math.round(60 + pct * 100);
+
+  let verdict, vc, tagline;
+  if (pct >= 0.9) { verdict = "Turing-Proof"; vc = "genius"; tagline = "Exceptional pattern recognition. Machine-generated text does not fool you."; }
+  else if (pct >= 0.7) { verdict = "Sharp Eye"; vc = "sharp"; tagline = "Above-average detection ability. Most AI text is transparent to you."; }
+  else if (pct >= 0.5) { verdict = "Average"; vc = "average"; tagline = "Moderate detection ability. You are sometimes deceived by fluent AI prose."; }
+  else { verdict = "Bot-Brained"; vc = "bot-brained"; tagline = "Below-average detection. You may be consuming AI-generated text without realizing it."; }
+
+  const iqEl = $('#results-iq');
+  let cur = 0;
+  const iv = setInterval(() => {
+    cur += Math.ceil((iq - cur) / 8);
+    if (cur >= iq) { cur = iq; clearInterval(iv); }
+    iqEl.textContent = cur;
+  }, 40);
+
+  $('#stat-correct').textContent = `${correctCount}/${total}`;
+  $('#stat-time').textContent = `${avgTime}s`;
+  $('#stat-streak').textContent = bestStreak;
+
+  const ve = $('#results-verdict');
+  ve.textContent = verdict;
+  ve.className = `results-verdict ${vc}`;
+  setTimeout(() => ve.classList.add('revealed'), 400);
+
+  const te = $('#results-tagline');
+  te.textContent = tagline;
+  te.className = 'results-tagline';
+  setTimeout(() => te.classList.add('revealed'), 400);
+
+  setTimeout(() => {
+    const bar = $('#results-bar');
+    bar.className = `results-bar ${vc}-bar`;
+    bar.style.width = `${pct * 100}%`;
+  }, 200);
+
+  const bd = $('#results-breakdown');
+  let html = '<div class="breakdown-title">Response Breakdown</div>';
+  state.answers.forEach(a => {
+    const q = a.round.question;
+    const sq = q.length > 60 ? q.substring(0, 57) + '...' : q;
+    const al = a.round.author === 'gpt' ? 'ChatGPT' : 'Human';
+    const tc = a.correct ? 'correct-tag' : 'wrong-tag';
+    const tt = a.timedOut ? 'TIMEOUT' : (a.correct ? 'CORRECT' : 'WRONG');
+    html += `<div class="breakdown-row">
+      <span class="breakdown-q">${escapeHtml(sq)} (${al})</span>
+      <span class="breakdown-result ${tc}">${tt}</span>
+    </div>`;
+  });
+  bd.innerHTML = html;
+
+  // Draw share card after IQ animation
+  setTimeout(() => drawShareCard(iq, verdict, correctCount, total, avgTime, vc), 1200);
+
+  // Auto-save to localStorage
+  saveResult(iq, correctCount, total, avgTime, verdict, selectedDataset);
+}
+
+// ═══════════════════════════════════════════════════
+//  SHARE CARD (canvas)
+// ═══════════════════════════════════════════════════
+function drawShareCard(iq, verdict, correct, total, avgTime, vc) {
+  const canvas = $('#share-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = 810, H = 1080;
+  const pad = 56;
+
+  const serif = 'Georgia, "Palatino Linotype", Palatino, serif';
+  const sans = '-apple-system, system-ui, Roboto, sans-serif';
+  const mono = 'Menlo, "SF Mono", Consolas, monospace';
+  const verdictColors = {
+    genius: '#1a7a2e', sharp: '#006699', average: '#996b00', 'bot-brained': '#b74616'
+  };
+  const vcc = verdictColors[vc] || '#222';
+  const handle = $('#share-handle').value.trim();
+  const pctVal = Math.round((correct / total) * 100);
+
+  // ── Background
+  ctx.fillStyle = '#fafafa';
+  ctx.fillRect(0, 0, W, H);
+
+  // ── Inner white card with subtle shadow feel
+  const cardX = 32, cardY = 32, cardW = W - 64, cardH = H - 64;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(cardX, cardY, cardW, cardH);
+  ctx.strokeStyle = '#e0e0e0';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(cardX, cardY, cardW, cardH);
+
+  // ── Top accent line inside card
+  ctx.fillStyle = '#006699';
+  ctx.fillRect(cardX, cardY, cardW, 5);
+
+  // ── Header area
+  let y = cardY + 48;
+  ctx.textAlign = 'left';
+  ctx.font = `bold 11px ${sans}`;
+  ctx.fillStyle = '#006699';
+  ctx.fillText('ORIGINAL RESEARCH', pad, y);
+
+  // Title
+  y += 32;
+  ctx.font = `bold 28px ${serif}`;
+  ctx.fillStyle = '#111111';
+  ctx.fillText('The Reverse Turing Test', pad, y);
+
+  // Subtitle
+  y += 28;
+  ctx.font = `italic 16px ${serif}`;
+  ctx.fillStyle = '#555555';
+  const subText = handle ? `Results for ${handle}` : 'Individual Results';
+  ctx.fillText(subText, pad, y);
+
+  // Meta line
+  y += 24;
+  ctx.font = `12px ${sans}`;
+  ctx.fillStyle = '#aaaaaa';
+  ctx.fillText(`${new Date().toLocaleDateString('en-US', {month:'long',day:'numeric',year:'numeric'})}  \u00B7  HC3 Corpus  \u00B7  ${total} trials`, pad, y);
+
+  // Heavy rule
+  y += 18;
+  ctx.fillStyle = '#111111';
+  ctx.fillRect(pad, y, cardW - (pad - cardX) * 2, 3);
+
+  // ═══ SCORE BLOCK — centered
+  y += 56;
+  ctx.textAlign = 'center';
+
+  // IQ — massive
+  ctx.font = `bold 96px ${serif}`;
+  ctx.fillStyle = '#111111';
+  ctx.fillText(iq.toString(), W / 2, y);
+
+  // Underline accent
+  const iqWidth = ctx.measureText(iq.toString()).width;
+  ctx.fillStyle = vcc;
+  ctx.fillRect(W / 2 - iqWidth / 2, y + 6, iqWidth, 3);
+
+  y += 28;
+  ctx.font = `11px ${sans}`;
+  ctx.fillStyle = '#aaaaaa';
+  ctx.fillText('REVERSE TURING SCORE', W / 2, y);
+
+  // Verdict
+  y += 40;
+  ctx.font = `bold 24px ${serif}`;
+  ctx.fillStyle = vcc;
+  ctx.fillText(verdict, W / 2, y);
+
+  // ═══ STATS — three boxes
+  y += 48;
+  const boxW = 190, boxH = 72, boxGap = 20;
+  const totalBoxW = boxW * 3 + boxGap * 2;
+  const boxStart = (W - totalBoxW) / 2;
+
+  const stats = [
+    { val: `${correct}/${total}`, label: 'CORRECT' },
+    { val: `${avgTime}s`, label: 'AVG TIME' },
+    { val: `${pctVal}%`, label: 'ACCURACY' }
+  ];
+
+  stats.forEach((s, i) => {
+    const bx = boxStart + i * (boxW + boxGap);
+    // Box
+    ctx.fillStyle = '#f7f7f7';
+    ctx.fillRect(bx, y, boxW, boxH);
+    ctx.strokeStyle = '#e8e8e8';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(bx, y, boxW, boxH);
+
+    // Value
+    ctx.textAlign = 'center';
+    ctx.font = `bold 26px ${mono}`;
+    ctx.fillStyle = '#222222';
+    ctx.fillText(s.val, bx + boxW / 2, y + 32);
+
+    // Label
+    ctx.font = `10px ${sans}`;
+    ctx.fillStyle = '#aaaaaa';
+    ctx.fillText(s.label, bx + boxW / 2, y + 54);
+  });
+
+  // ═══ BELL CURVE — figure style
+  y += boxH + 40;
+  const curveH = 180;
+  const cl = pad + 8, cr = W - pad - 8;
+  const cw = cr - cl;
+  const mean = 100, sd = 15, iqMin = 55, iqMax = 155;
+  function gauss(x) { return Math.exp(-0.5 * Math.pow((x - mean) / sd, 2)); }
+
+  // Figure caption
+  ctx.textAlign = 'left';
+  ctx.font = `bold 10px ${sans}`;
+  ctx.fillStyle = '#aaaaaa';
+  ctx.fillText('FIG. 1  \u2014  Normal distribution with subject position', cl, y);
+  y += 16;
+
+  // Shaded regions: below avg, avg, above avg
+  // Below average fill
+  ctx.beginPath();
+  ctx.moveTo(cl, y + curveH);
+  const avgLeftX = cl + ((85 - iqMin) / (iqMax - iqMin)) * cw;
+  const avgRightX = cl + ((115 - iqMin) / (iqMax - iqMin)) * cw;
+  for (let i = 0; i <= cw; i++) {
+    const iqVal = iqMin + (i / cw) * (iqMax - iqMin);
+    if (iqVal <= 85) ctx.lineTo(cl + i, y + curveH - gauss(iqVal) * curveH);
+  }
+  ctx.lineTo(avgLeftX, y + curveH);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(183,70,22,0.04)';
+  ctx.fill();
+
+  // Average fill
+  ctx.beginPath();
+  ctx.moveTo(avgLeftX, y + curveH);
+  for (let i = 0; i <= cw; i++) {
+    const iqVal = iqMin + (i / cw) * (iqMax - iqMin);
+    if (iqVal >= 85 && iqVal <= 115) ctx.lineTo(cl + i, y + curveH - gauss(iqVal) * curveH);
+  }
+  ctx.lineTo(avgRightX, y + curveH);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(0,102,153,0.05)';
+  ctx.fill();
+
+  // Above average fill
+  ctx.beginPath();
+  ctx.moveTo(avgRightX, y + curveH);
+  for (let i = 0; i <= cw; i++) {
+    const iqVal = iqMin + (i / cw) * (iqMax - iqMin);
+    if (iqVal >= 115) ctx.lineTo(cl + i, y + curveH - gauss(iqVal) * curveH);
+  }
+  ctx.lineTo(cr, y + curveH);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(26,122,46,0.04)';
+  ctx.fill();
+
+  // Curve stroke
+  ctx.beginPath();
+  for (let i = 0; i <= cw; i++) {
+    const iqVal = iqMin + (i / cw) * (iqMax - iqMin);
+    const cy = y + curveH - gauss(iqVal) * curveH;
+    i === 0 ? ctx.moveTo(cl + i, cy) : ctx.lineTo(cl + i, cy);
+  }
+  ctx.strokeStyle = '#c0c0c0';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // X axis
+  ctx.beginPath();
+  ctx.moveTo(cl, y + curveH);
+  ctx.lineTo(cr, y + curveH);
+  ctx.strokeStyle = '#d5d5d5';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Ticks + labels
+  ctx.textAlign = 'center';
+  ctx.font = `10px ${sans}`;
+  ctx.fillStyle = '#bbbbbb';
+  for (let v = 70; v <= 150; v += 10) {
+    const x = cl + ((v - iqMin) / (iqMax - iqMin)) * cw;
+    if (v % 20 === 0 || v === 70) {
+      ctx.fillText(v.toString(), x, y + curveH + 16);
+    }
+    ctx.beginPath();
+    ctx.moveTo(x, y + curveH);
+    ctx.lineTo(x, y + curveH + (v % 20 === 0 || v === 70 ? 5 : 3));
+    ctx.strokeStyle = '#ddd';
+    ctx.stroke();
+  }
+
+  // Region labels
+  ctx.font = `9px ${sans}`;
+  ctx.fillStyle = '#cccccc';
+  ctx.fillText('BELOW AVG', cl + ((70 - iqMin) / (iqMax - iqMin)) * cw, y + curveH + 30);
+  ctx.fillText('AVERAGE', cl + ((100 - iqMin) / (iqMax - iqMin)) * cw, y + curveH + 30);
+  ctx.fillText('ABOVE AVG', cl + ((130 - iqMin) / (iqMax - iqMin)) * cw, y + curveH + 30);
+
+  // ── User marker
+  const ciq = Math.min(Math.max(iq, iqMin + 3), iqMax - 3);
+  const ux = cl + ((ciq - iqMin) / (iqMax - iqMin)) * cw;
+  const uy = y + curveH - gauss(ciq) * curveH;
+
+  // Dashed line
+  ctx.beginPath();
+  ctx.moveTo(ux, uy + 2);
+  ctx.lineTo(ux, y + curveH);
+  ctx.strokeStyle = vcc;
+  ctx.lineWidth = 2;
+  ctx.setLineDash([5, 4]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Dot — larger, with ring
+  ctx.beginPath();
+  ctx.arc(ux, uy, 8, 0, Math.PI * 2);
+  ctx.fillStyle = vcc;
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(ux, uy, 8, 0, Math.PI * 2);
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(ux, uy, 11, 0, Math.PI * 2);
+  ctx.strokeStyle = vcc;
+  ctx.lineWidth = 1.5;
+  ctx.globalAlpha = 0.3;
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // Label above
+  ctx.font = `bold 13px ${sans}`;
+  ctx.fillStyle = vcc;
+  ctx.textAlign = 'center';
+  const youText = handle || 'YOU';
+  ctx.fillText(youText, ux, uy - 20);
+
+  // ═══ FOOTER inside card
+  const footY = cardY + cardH - 40;
+  ctx.beginPath();
+  ctx.moveTo(pad, footY);
+  ctx.lineTo(W - pad, footY);
+  ctx.strokeStyle = '#e8e8e8';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.font = `12px ${sans}`;
+  ctx.fillStyle = '#bbbbbb';
+  ctx.textAlign = 'left';
+  ctx.fillText('Take the test  \u2192  reverseturing.com', pad, footY + 22);
+
+  ctx.textAlign = 'right';
+  ctx.font = `bold 12px ${sans}`;
+  ctx.fillStyle = '#006699';
+  ctx.fillText('@chiefofautism', W - pad, footY + 22);
+}
+
+// ── SHARE BUTTONS ──
+$('#share-handle').addEventListener('input', () => {
+  // Redraw share card when handle changes
+  if ($('#screen-results').classList.contains('active')) {
+    const total = state.totalRounds;
+    const correctCount = state.answers.filter(a => a.correct).length;
+    const pct = correctCount / total;
+    const avgTime = (state.times.reduce((a, b) => a + b, 0) / state.times.length).toFixed(1);
+    const iq = Math.round(60 + pct * 100);
+    let verdict, vc;
+    if (pct >= 0.9) { verdict = "Turing-Proof"; vc = "genius"; }
+    else if (pct >= 0.7) { verdict = "Sharp Eye"; vc = "sharp"; }
+    else if (pct >= 0.5) { verdict = "Average"; vc = "average"; }
+    else { verdict = "Bot-Brained"; vc = "bot-brained"; }
+    drawShareCard(iq, verdict, correctCount, total, avgTime, vc);
+  }
+});
+
+$('#btn-copy-image').addEventListener('click', async () => {
+  const canvas = $('#share-canvas');
+  try {
+    const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+    const msg = $('#share-copied');
+    msg.textContent = 'Copied to clipboard!';
+    msg.classList.add('visible');
+    setTimeout(() => msg.classList.remove('visible'), 2000);
+  } catch {
+    // Fallback: download
+    const link = document.createElement('a');
+    link.download = 'reverse-turing-test.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    const msg = $('#share-copied');
+    msg.textContent = 'Downloaded! (Clipboard not available)';
+    msg.classList.add('visible');
+    setTimeout(() => msg.classList.remove('visible'), 2000);
+  }
+});
+
+$('#btn-download-image').addEventListener('click', () => {
+  const canvas = $('#share-canvas');
+  const link = document.createElement('a');
+  link.download = 'reverse-turing-test.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+});
+
+$('#btn-share-x').addEventListener('click', () => {
+  const total = state.totalRounds;
+  const correctCount = state.answers.filter(a => a.correct).length;
+  const pct = correctCount / total;
+  const iq = Math.round(60 + pct * 100);
+  const handle = $('#share-handle').value.trim();
+  let text = `My Reverse Turing Score: ${iq}\n${correctCount}/${total} correct\n\nCan you still tell human from machine? Take the test:`;
+  if (handle) text = `${handle}'s Reverse Turing Score: ${iq}\n${correctCount}/${total} correct\n\nCan you still tell human from machine? Take the test:`;
+  const url = encodeURIComponent(window.location.href);
+  const encoded = encodeURIComponent(text);
+  window.open(`https://x.com/intent/tweet?text=${encoded}&url=${url}`, '_blank');
+});
+
+// ── INIT ──
+$('#btn-start').addEventListener('click', async () => {
+  const btn = $('#btn-start');
+  btn.disabled = true; btn.textContent = 'Loading...';
+  const oldErr = $('.error-msg');
+  if (oldErr) oldErr.remove();
+  showScreen('loading');
+
+  try {
+    const rounds = await fetchRounds(selectedRounds, selectedDataset);
+    if (rounds.length === 0) throw new Error('No valid rounds. Try a different domain.');
+
+    state = {
+      rounds, current: 0, answers: [], times: [],
+      timerInterval: null, timeLeft: TIMER_SECONDS,
+      roundStart: 0, answered: false, totalRounds: rounds.length
+    };
+    showScreen('question');
+    renderRound();
+  } catch (err) {
+    showScreen('landing');
+    const e = document.createElement('div');
+    e.className = 'error-msg';
+    e.textContent = `Failed to load: ${err.message}`;
+    btn.parentElement.insertBefore(e, btn.nextSibling);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Begin Assessment';
+  }
+});
+
+$('#btn-retry').addEventListener('click', () => {
+  clearInterval(state.timerInterval);
+  showScreen('landing');
+});
+
+document.addEventListener('keydown', e => {
+  if (!$('#screen-question').classList.contains('active')) return;
+  if (state.answered) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); advanceRound(); }
+    return;
+  }
+  if (e.key.toLowerCase() === 'h' || e.key === '1') submitAnswer('human');
+  if (e.key.toLowerCase() === 'g' || e.key === '2') submitAnswer('gpt');
+});
+// ═══════════════════════════════════════════════════
+//  LOCAL STORAGE — persist history
+// ═══════════════════════════════════════════════════
+const STORAGE_KEY = 'slopornot_history';
+
+function loadHistory() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+  } catch { return []; }
+}
+
+function saveResult(iq, correctCount, total, avgTime, verdict, domain) {
+  const history = loadHistory();
+  history.push({
+    iq,
+    correct: correctCount,
+    total,
+    avgTime: parseFloat(avgTime),
+    verdict,
+    domain,
+    date: new Date().toISOString()
+  });
+  // Keep last 100 results
+  if (history.length > 100) history.splice(0, history.length - 100);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+  renderHistory();
+}
+
+function renderHistory() {
+  const history = loadHistory();
+  let el = $('#history-section');
+  if (history.length === 0) {
+    if (el) el.style.display = 'none';
+    return;
+  }
+
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'history-section';
+    el.style.cssText = 'margin-bottom:32px; padding-top:24px; border-top:1px solid #d5d5d5;';
+    // Insert before share section on results page
+    const share = $('.share-section');
+    if (share) share.parentElement.insertBefore(el, share);
+    else $('#screen-results').querySelector('.results-card').appendChild(el);
+  }
+  el.style.display = 'block';
+
+  const best = history.reduce((a, b) => a.iq > b.iq ? a : b);
+  const avgIq = Math.round(history.reduce((s, h) => s + h.iq, 0) / history.length);
+  const recent = history.slice(-5).reverse();
+
+  let html = `
+    <div style="font-family:var(--serif);font-size:20px;font-weight:700;color:#222;margin-bottom:16px;letter-spacing:-0.3px;">Your History</div>
+    <div style="display:flex;gap:40px;margin-bottom:20px;">
+      <div style="text-align:center;">
+        <span style="font-family:var(--mono);font-size:24px;font-weight:700;color:#222;display:block;">${history.length}</span>
+        <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#999;">Tests</span>
+      </div>
+      <div style="text-align:center;">
+        <span style="font-family:var(--mono);font-size:24px;font-weight:700;color:#222;display:block;">${best.iq}</span>
+        <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#999;">Best Score</span>
+      </div>
+      <div style="text-align:center;">
+        <span style="font-family:var(--mono);font-size:24px;font-weight:700;color:#222;display:block;">${avgIq}</span>
+        <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#999;">Avg Score</span>
+      </div>
+    </div>
+    <div style="font-size:13px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Recent</div>
+  `;
+
+  recent.forEach(r => {
+    const d = new Date(r.date);
+    const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const vcColor = r.iq >= 150 ? '#1a7a2e' : r.iq >= 130 ? '#006699' : r.iq >= 110 ? '#d68000' : '#b74616';
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #eee;font-size:14px;">
+      <span style="color:#666;">${dateStr} &mdash; ${r.domain || 'eli5'} (${r.total}q)</span>
+      <span style="font-family:var(--mono);font-weight:700;color:${vcColor};">${r.iq}</span>
+    </div>`;
+  });
+
+  el.innerHTML = html;
+}
+
+// Also restore handle from localStorage
+const savedHandle = localStorage.getItem('slopornot_handle');
+if (savedHandle) $('#share-handle').value = savedHandle;
+$('#share-handle').addEventListener('change', () => {
+  localStorage.setItem('slopornot_handle', $('#share-handle').value.trim());
+});
+</script>
+
+<!-- GoatCounter analytics -->
+<script data-goatcounter="https://adaboost.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
